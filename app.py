@@ -53,5 +53,25 @@ if st.button("🚀 启动 AI 精准估价", type="primary", use_container_width=
     
     st.balloons()
     st.success(f"根据当前市场行情深度计算，这台 **{model_choice} ({storage_choice}GB)** 的合理估价约为：")
+# === 以下是我们新加的图表代码 ===
+    st.divider()
+    st.subheader("📊 价格折损趋势分析")
+    st.write(f"以这台 **{model_choice} ({storage_choice}GB)** 为例，假设成色不变，电池健康度对价格的直接影响曲线：")
+    
+    # 让 AI 自动推算电池从 70% 到 100% 的所有价格
+    trend_data = []
+    for b in range(70, 101, 2): # 每隔 2% 算一次
+        temp_input = pd.DataFrame({
+            '型号_数字代号': [model_mapping[model_choice]],
+            '容量_GB': [storage_choice],
+            '电池健康度_%': [b],
+            '成色得分': [condition_choice]
+        })
+        simulated_price = model.predict(temp_input)[0]
+        trend_data.append({'电池健康度 (%)': b, '预估价格 (元)': simulated_price})
+    
+    # 把数据转换成图表并展示出来
+    trend_df = pd.DataFrame(trend_data).set_index('电池健康度 (%)')
+    st.line_chart(trend_df)
     st.metric(label="AI 建议挂牌价", value=f"¥ {prediction:.0f}")
     st.info("💡 提示：此价格由 Random Forest 算法分析市场成交规律计算得出，包含因电池与外观折损的动态扣减。")
